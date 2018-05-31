@@ -2,8 +2,12 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { Navbar, Nav, NavItem, Grid, Row, Image, Col, FormGroup, InputGroup, FormControl, Button, Table, Footer } from 'react-bootstrap';
 import Select from 'react-select';
+import BootstrapTable from 'react-bootstrap-table-next';
+import paginationFactory from 'react-bootstrap-table2-paginator';
+import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
 
 import { MOVIES } from './movies.js';
+import { GENRES } from './genres.js';
 
 import './styles.css';
 
@@ -123,25 +127,56 @@ class Movies extends React.Component {
     }
 
     render() {
-        const listMovies = this.state.result.map((item, index) => 
-          <tr key={index}>
-              <td><img src={item.poster_path} alt="img"/></td>
-              <td>{item.title}</td>
-              <td>{item.format}</td>
-              <td>{item.genre_ids}</td>
-              <td>{item.release_date.substring(0, 4)}</td>
-              <td>{item.vote_average}</td>              
-          </tr>
-        );
+        function posterFormatter(cell, row) {
+            return (
+                <Image alt="img" src={cell} />
+            );
+        }
 
-        this.state.result.map((item, index) => 
-            <div key={index}>{item.title}</div>
-        )
+        function yearFormatter(cell, row) {
+            return cell.substring(0, 4);
+        }
+
+        function genreFormatter(cell, row) {
+            var genres = '';
+            for (let i = 0; i < GENRES.length; i++) {
+                for (let j = 0; j < cell.length; j++) {
+                    if (GENRES[i].id == cell[j]) {
+                        genres += ' ' + GENRES[i].name;
+                    }
+                }
+            }
+            return genres;
+        }
+
+        const columns = [{
+            dataField: 'poster_path',
+            text: '',
+            formatter: posterFormatter
+        }, {
+            dataField: 'title',
+            text: 'Title'
+        }, {
+            dataField: 'format',
+            text: 'Format'
+        }, {
+            dataField: 'genre_ids',
+            text: 'Genre',
+            formatter: genreFormatter
+        }, {
+            dataField: 'release_date',
+            text: 'Year',
+            formatter: yearFormatter
+        }, {
+            dataField: 'vote_average',
+            text: 'Rating'
+        }
+        ];
 
         return (
             <div>
                 {/* Шапка приложения. */}
-                <Navbar inverse> {/*fixedTop*/}
+                <Navbar inverse>
                     <Nav>
                         <NavItem eventKey={1} href="#">
                             Search
@@ -155,7 +190,7 @@ class Movies extends React.Component {
                             {USERS[0].login}
                         </NavItem>
                         <Navbar.Brand>
-                            <Image id="avatar" src={USERS[0].img} circle/>
+                            <Image id="avatar" src={USERS[0].img} circle />
                         </Navbar.Brand>
                     </Nav>
                 </Navbar>
@@ -187,22 +222,20 @@ class Movies extends React.Component {
                                     { value: 35, label: 'Комедия' },
                                     { value: 53, label: 'Триллер' },
                                     { value: 28, label: 'Боевик' },
-                                    { value: 53, label: 'Приключение' },
-                                    { value: 53, label: 'Мультфильм' },
-                                    { value: 53, label: 'Комедия' },
-                                    { value: 53, label: 'Криминал' },
-                                    { value: 53, label: 'Документальный' },
-                                    { value: 53, label: 'Семейный' },
-                                    { value: 53, label: 'Фэнтези' },
-                                    { value: 53, label: 'История' },
-                                    { value: 53, label: 'Ужасы' },
-                                    { value: 53, label: 'Музыка' },
-                                    { value: 53, label: 'Детектив' },
-                                    { value: 53, label: 'Мелодрама' },
-                                    { value: 53, label: 'Фантастика' },
-                                    { value: 53, label: 'Телевизионный фильм' },
-                                    { value: 53, label: 'Военный' },
-                                    { value: 53, label: 'Вестерн' }
+                                    { value: 80, label: 'Криминал' },
+                                    { value: 99, label: 'Документальный' },
+                                    { value: 10751, label: 'Семейный' },
+                                    { value: 14, label: 'Фэнтези' },
+                                    { value: 36, label: 'История' },
+                                    { value: 27, label: 'Ужасы' },
+                                    { value: 10402, label: 'Музыка' },
+                                    { value: 9648, label: 'Детектив' },
+                                    { value: 10749, label: 'Мелодрама' },
+                                    { value: 878, label: 'Фантастика' },
+                                    { value: 10770, label: 'Телевизионный фильм' },
+                                    { value: 10752, label: 'Военный' },
+                                    { value: 37, label: 'Вестерн' },
+                                    { value: 18, label: 'Драма' }
                                 ]}
                             />
                         </Col>
@@ -238,21 +271,15 @@ class Movies extends React.Component {
                     </Row>
                     <Row>
                         <Col xs={12}>
-                            <Table striped bordered condensed hover responsive>
-                                <thead>
-                                    <tr>
-                                        <th></th>
-                                        <th>Title</th>
-                                        <th>Format</th>
-                                        <th>Genre</th>
-                                        <th>Year</th>
-                                        <th>Rating</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {listMovies}
-                                </tbody>
-                            </Table>
+                            <BootstrapTable
+                                keyField='id'
+                                data={this.state.result}
+                                columns={columns}
+                                pagination={paginationFactory()}
+                                striped
+                                hover
+                                condensed
+                            />
                         </Col>
                     </Row>
                     {/* <Row>
@@ -276,13 +303,11 @@ class Movies extends React.Component {
                      * Можно отфильтровать записи по году, или по жанру.
                      * Но нельзя применить оба фильтра одновременно.
                      * Реализуйте применение нескольких фильтров одновременно.
+                     * 
+                     * TODO 3:
+                     * Для Table свой компонент
                      */
                 }
-                {/* {
-                    this.state.result.map(
-                        (item, index) => <div key={index}>{item.title}</div>
-                    )
-                } */}
             </div>
         )
     }

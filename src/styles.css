@@ -18,3 +18,11 @@
 .table > thead > tr > th {
     padding: 10px;
 }
+
+.react-bootstrap-table-pagination-list {
+    text-align: right;
+}
+
+.table {
+    margin-top: 30px;
+}
