@@ -1,0 +1,20 @@
+/*
+ * Сюда можно полжить свои стили.
+ */
+
+.table > tbody > tr > td, th {
+    text-align: center;
+    padding: 10px;
+}
+
+#avatar {
+    max-height: 58px;
+    display: flex;
+    align-items: center;
+    display: flex;
+    padding: 7px 14px;
+}
+
+.table > thead > tr > th {
+    padding: 10px;
+}
