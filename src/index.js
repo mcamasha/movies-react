@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import { Navbar, Nav, NavItem, Grid, Row, Image, Col, FormGroup, InputGroup, FormControl, Button, Table, Footer } from 'react-bootstrap';
+import { Navbar, Nav, NavItem, Grid, Row, Image, Col, FormGroup, InputGroup, FormControl, Button, Table, Footer, Container} from 'react-bootstrap';
 import Select from 'react-select';
 import BootstrapTable from 'react-bootstrap-table-next';
 import paginationFactory from 'react-bootstrap-table2-paginator';
@@ -64,9 +64,12 @@ class Movies extends React.Component {
                         itemResult = item.genre_ids.indexOf(this.state.genre.value) !== -1;
                         if (!itemResult) return itemResult;
                     }
-                    
                     if (this.state.year !== null) {
                         itemResult = item.release_date.indexOf(this.state.year.value) !== -1;
+                        if (!itemResult) return itemResult;
+                    }
+                    if (this.state.searchInput !== null) {
+                        itemResult = item.title.toLowerCase().indexOf(this.state.searchInput.toLowerCase()) !== -1;
                         if (!itemResult) return itemResult;
                     }
                 }
@@ -100,6 +103,10 @@ class Movies extends React.Component {
                         itemResult = item.release_date.indexOf(this.state.year.value) !== -1;
                         if (!itemResult) return itemResult;
                     }
+                    if (this.state.searchInput !== null) {
+                        itemResult = item.title.toLowerCase().indexOf(this.state.searchInput.toLowerCase()) !== -1;
+                        if (!itemResult) return itemResult;
+                    }
                 }
 
                 return itemResult;
@@ -122,13 +129,17 @@ class Movies extends React.Component {
             (item) => {
                 let itemResult = item.release_date.indexOf(selectedOption.value) !== -1
 
-                if (itemResult) {                   
+                if (itemResult) {
                     if (this.state.format !== null) {
                         itemResult = item.format.indexOf(this.state.format.value) !== -1;
                         if (!itemResult) return itemResult;
                     }
                     if (this.state.genre !== null) {
                         itemResult = item.genre_ids.indexOf(this.state.genre.value) !== -1;
+                        if (!itemResult) return itemResult;
+                    }
+                    if (this.state.searchInput !== null) {
+                        itemResult = item.title.toLowerCase().indexOf(this.state.searchInput.toLowerCase()) !== -1;
                         if (!itemResult) return itemResult;
                     }
                 }
@@ -167,13 +178,32 @@ class Movies extends React.Component {
         // Это делает поиск регистронезависимым.
         // Также обратите внимание, что если searchInput пустое, то мы кладём в стейт весь справочник (например, если юзер очистил поле и нажал 'Поиск').
         // Для этого используется тренарный оператор. В React он используется очень часто.
-        const resultArray = searchInput ?
-            MOVIES.filter(
-                (item) => item.title.toLowerCase().indexOf(searchInput.toLowerCase()) !== -1
-            ) : MOVIES;
+
+        const movies = MOVIES.filter(
+            (item) => {
+                let itemResult = item.title.toLowerCase().indexOf(searchInput.toLowerCase()) !== -1;
+
+                if (itemResult) {
+                    if (this.state.format !== null) {
+                        itemResult = item.format.indexOf(this.state.format.value) !== -1;
+                        if (!itemResult) return itemResult;
+                    }
+                    if (this.state.genre !== null) {
+                        itemResult = item.genre_ids.indexOf(this.state.genre.value) !== -1;
+                        if (!itemResult) return itemResult;
+                    }
+                    if (this.state.year !== null) {
+                        itemResult = item.release_date.indexOf(this.state.year.value) !== -1;
+                        if (!itemResult) return itemResult;
+                    }
+                }
+
+                return itemResult;
+            }
+        );
 
         this.setState({
-            result: resultArray
+            result: movies
         });
     }
 
@@ -333,28 +363,10 @@ class Movies extends React.Component {
                             />
                         </Col>
                     </Row>
-                    {/* <Row>
-                        <Col xs = {12}>        
-                            <Footer>
-                                Copyright
-                            </Footer>
-                        </Col>
-                    </Row> */}
                 </Grid>
 
                 {
                     /* 
-                     * TODO 1:
-                     * Вместо нижестоящего куска кода необходимо реализовать таблицу согласно макету. 
-                     * Не забудьте обернуть её в компонент Row. Как думаете сколько колонок нужно, чтобы отрисовать таблицу?
-                     * (Правильный ответ: одна (т.е. xs={12})). 
-                     * 
-                     * TODO 2:
-                     * В текущей реализации фильтрация не поддерживает применение нескольких фильтров сразу.
-                     * Можно отфильтровать записи по году, или по жанру.
-                     * Но нельзя применить оба фильтра одновременно.
-                     * Реализуйте применение нескольких фильтров одновременно.
-                     * 
                      * TODO 3:
                      * Для Table свой компонент
                      */
