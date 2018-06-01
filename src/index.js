@@ -50,13 +50,27 @@ class Movies extends React.Component {
      */
     handleFormatChange(selectedOption) {
         // Фильтруем по формату.
-        const resultArray = MOVIES.filter(
-            (item) => item.format.indexOf(selectedOption.value) !== -1
+        const movies = MOVIES.filter(
+            (item) => {
+                let itemResult = item.format.indexOf(selectedOption.value) !== -1;
+                // if (this.state.genre !== null) {
+                //     return item.format.indexOf(selectedOption.value) !== -1 && item.genre_ids.indexOf(this.state.genre.value) !== -1
+                // } else {
+                //     return item.format.indexOf(selectedOption.value) !== -1
+                // }
+                if(itemResult) {
+                    if (this.state.genre !== null) 
+                        itemResult = item.genre_ids.indexOf(this.state.genre.value) !== -1;
+                    
+                }
+                
+                return itemResult;
+            }
         );
 
         this.setState({
             format: selectedOption,
-            result: resultArray
+            result: movies
         });
     }
 
@@ -66,13 +80,19 @@ class Movies extends React.Component {
     handleGenreChange(selectedOption) {
         // Фильтруем по жанрам. Не забываем при этом, что жанров может быть много, они лежат в массиве.
         // Это не сильно усложняет условие фильтрации, ведь indexOf метод прекрасно работает как со строкой так и с массивом.
-        const resultArray = MOVIES.filter(
-            (item) => item.genre_ids.indexOf(selectedOption.value) !== -1
+        const movies = MOVIES.filter(
+            (item) => {
+                if (this.state.format !== null) {
+                    return item.genre_ids.indexOf(selectedOption.value) !== -1 && item.format.indexOf(this.state.format.value) !== -1
+                } else {
+                    return item.genre_ids.indexOf(selectedOption.value) !== -1
+                }
+            }
         );
 
         this.setState({
             genre: selectedOption,
-            result: resultArray
+            result: movies
         });
     }
 
@@ -261,7 +281,7 @@ class Movies extends React.Component {
                         <Col xs={3}>
                             <FormGroup>
                                 <InputGroup>
-                                    <FormControl type="text" onChange={this.handleSearchInputChange} />
+                                    <FormControl type="text" onChange={this.handleSearchInputChange} placeholder="Search movie..." />
                                     <InputGroup.Button>
                                         <Button onClick={this.handleSearchButtonClick}>Search</Button>
                                     </InputGroup.Button>
