@@ -10,6 +10,7 @@ import { MOVIES } from './movies.js';
 import { GENRES } from './genres.js';
 
 import './styles.css';
+import { ENGINE_METHOD_DIGESTS } from "constants";
 
 const USERS = [
     {
@@ -58,12 +59,18 @@ class Movies extends React.Component {
                 // } else {
                 //     return item.format.indexOf(selectedOption.value) !== -1
                 // }
-                if(itemResult) {
-                    if (this.state.genre !== null) 
+                if (itemResult) {
+                    if (this.state.genre !== null) {
                         itemResult = item.genre_ids.indexOf(this.state.genre.value) !== -1;
+                        if (!itemResult) return itemResult;
+                    }
                     
+                    if (this.state.year !== null) {
+                        itemResult = item.release_date.indexOf(this.state.year.value) !== -1;
+                        if (!itemResult) return itemResult;
+                    }
                 }
-                
+
                 return itemResult;
             }
         );
@@ -82,11 +89,20 @@ class Movies extends React.Component {
         // Это не сильно усложняет условие фильтрации, ведь indexOf метод прекрасно работает как со строкой так и с массивом.
         const movies = MOVIES.filter(
             (item) => {
-                if (this.state.format !== null) {
-                    return item.genre_ids.indexOf(selectedOption.value) !== -1 && item.format.indexOf(this.state.format.value) !== -1
-                } else {
-                    return item.genre_ids.indexOf(selectedOption.value) !== -1
+                let itemResult = item.genre_ids.indexOf(selectedOption.value) !== -1;
+
+                if (itemResult) {
+                    if (this.state.format !== null) {
+                        itemResult = item.format.indexOf(this.state.format.value) !== -1;
+                        if (!itemResult) return itemResult;
+                    }
+                    if (this.state.year !== null) {
+                        itemResult = item.release_date.indexOf(this.state.year.value) !== -1;
+                        if (!itemResult) return itemResult;
+                    }
                 }
+
+                return itemResult;
             }
         );
 
@@ -102,13 +118,28 @@ class Movies extends React.Component {
     handleYearChange(selectedOption) {
 
         // Фильтруем по году.
-        const resultArray = MOVIES.filter(
-            (item) => item.release_date.indexOf(selectedOption.value) !== -1
+        const movies = MOVIES.filter(
+            (item) => {
+                let itemResult = item.release_date.indexOf(selectedOption.value) !== -1
+
+                if (itemResult) {                   
+                    if (this.state.format !== null) {
+                        itemResult = item.format.indexOf(this.state.format.value) !== -1;
+                        if (!itemResult) return itemResult;
+                    }
+                    if (this.state.genre !== null) {
+                        itemResult = item.genre_ids.indexOf(this.state.genre.value) !== -1;
+                        if (!itemResult) return itemResult;
+                    }
+                }
+
+                return itemResult;
+            }
         );
 
         this.setState({
             year: selectedOption,
-            result: resultArray
+            result: movies
         });
     }
 
