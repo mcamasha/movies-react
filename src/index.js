@@ -45,6 +45,7 @@ class Movies extends React.Component {
         this.handleYearChange = this.handleYearChange.bind(this);
         this.handleSearchInputChange = this.handleSearchInputChange.bind(this);
         this.handleSearchButtonClick = this.handleSearchButtonClick.bind(this);
+        this.handleSearchInputKeyPress = this.handleSearchInputKeyPress.bind(this);
     }
 
     /**
@@ -131,6 +132,13 @@ class Movies extends React.Component {
         this.setState({
             searchInput: event.target.value
         });
+    }
+
+    //нажатие клавиши Enter в input search
+    handleSearchInputKeyPress(event) {
+        if(event.charCode == 13) {
+            this.handleSearchButtonClick();    
+        }
     }
 
     /**
@@ -303,7 +311,7 @@ class Movies extends React.Component {
                         <Col xs={3}>
                             <FormGroup>
                                 <InputGroup>
-                                    <FormControl type="text" onChange={this.handleSearchInputChange} placeholder="Search movie..." />
+                                    <FormControl type="text" onChange={this.handleSearchInputChange} placeholder="Search movie..." onKeyPress={this.handleSearchInputKeyPress} />
                                     <InputGroup.Button>
                                         <Button onClick={this.handleSearchButtonClick}>Search</Button>
                                     </InputGroup.Button>
