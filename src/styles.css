@@ -4,7 +4,8 @@
 
 .table > tbody > tr > td, th {
     text-align: center;
-    padding: 10px;
+    padding: 15px;
+    /* vertical-align: center; */
 }
 
 #avatar {
@@ -16,7 +17,7 @@
 }
 
 .table > thead > tr > th {
-    padding: 10px;
+    padding: 15px;
 }
 
 .react-bootstrap-table-pagination-list {

@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import { Navbar, Nav, NavItem, Grid, Row, Image, Col, FormGroup, InputGroup, FormControl, Button, Table, Footer, Container} from 'react-bootstrap';
+import { Navbar, Nav, NavItem, Grid, Row, Image, Col, FormGroup, InputGroup, FormControl, Button, Table, Footer, Container } from 'react-bootstrap';
 import Select from 'react-select';
 import BootstrapTable from 'react-bootstrap-table-next';
 import paginationFactory from 'react-bootstrap-table2-paginator';
@@ -32,7 +32,8 @@ class Movies extends React.Component {
             genre: null,                // Начальное состояние для фильтра 'Жанр'.
             year: null,                 // Начальное состояние для фильтра 'Год'.
             searchInput: null,          // Начальное состояние для фильтра 'Поиск по названию фильму'.
-            result: MOVIES              // По умолчанию полжим сразу все фильмы. Их нужно будет показать в таблице.
+            result: MOVIES,             // По умолчанию полжим сразу все фильмы. Их нужно будет показать в таблице.
+            pageSearch: true
         }
 
         /**
@@ -54,24 +55,11 @@ class Movies extends React.Component {
         const movies = MOVIES.filter(
             (item) => {
                 let itemResult = item.format.indexOf(selectedOption.value) !== -1;
-                // if (this.state.genre !== null) {
-                //     return item.format.indexOf(selectedOption.value) !== -1 && item.genre_ids.indexOf(this.state.genre.value) !== -1
-                // } else {
-                //     return item.format.indexOf(selectedOption.value) !== -1
-                // }
+
                 if (itemResult) {
-                    if (this.state.genre !== null) {
-                        itemResult = item.genre_ids.indexOf(this.state.genre.value) !== -1;
-                        if (!itemResult) return itemResult;
-                    }
-                    if (this.state.year !== null) {
-                        itemResult = item.release_date.indexOf(this.state.year.value) !== -1;
-                        if (!itemResult) return itemResult;
-                    }
-                    if (this.state.searchInput !== null) {
-                        itemResult = item.title.toLowerCase().indexOf(this.state.searchInput.toLowerCase()) !== -1;
-                        if (!itemResult) return itemResult;
-                    }
+                    if (this.state.genre !== null && item.genre_ids.indexOf(this.state.genre.value) === -1) return false;
+                    if (this.state.year !== null && item.release_date.indexOf(this.state.year.value) === -1) return false;
+                    if (this.state.searchInput !== null && item.title.toLowerCase().indexOf(this.state.searchInput.toLowerCase()) === -1) return false;
                 }
 
                 return itemResult;
@@ -95,18 +83,9 @@ class Movies extends React.Component {
                 let itemResult = item.genre_ids.indexOf(selectedOption.value) !== -1;
 
                 if (itemResult) {
-                    if (this.state.format !== null) {
-                        itemResult = item.format.indexOf(this.state.format.value) !== -1;
-                        if (!itemResult) return itemResult;
-                    }
-                    if (this.state.year !== null) {
-                        itemResult = item.release_date.indexOf(this.state.year.value) !== -1;
-                        if (!itemResult) return itemResult;
-                    }
-                    if (this.state.searchInput !== null) {
-                        itemResult = item.title.toLowerCase().indexOf(this.state.searchInput.toLowerCase()) !== -1;
-                        if (!itemResult) return itemResult;
-                    }
+                    if (this.state.format !== null && item.format.indexOf(this.state.format.value) === -1) return false;
+                    if (this.state.year !== null && item.release_date.indexOf(this.state.year.value) === -1) return false;
+                    if (this.state.searchInput !== null && item.title.toLowerCase().indexOf(this.state.searchInput.toLowerCase()) === -1) return false;
                 }
 
                 return itemResult;
@@ -130,18 +109,9 @@ class Movies extends React.Component {
                 let itemResult = item.release_date.indexOf(selectedOption.value) !== -1
 
                 if (itemResult) {
-                    if (this.state.format !== null) {
-                        itemResult = item.format.indexOf(this.state.format.value) !== -1;
-                        if (!itemResult) return itemResult;
-                    }
-                    if (this.state.genre !== null) {
-                        itemResult = item.genre_ids.indexOf(this.state.genre.value) !== -1;
-                        if (!itemResult) return itemResult;
-                    }
-                    if (this.state.searchInput !== null) {
-                        itemResult = item.title.toLowerCase().indexOf(this.state.searchInput.toLowerCase()) !== -1;
-                        if (!itemResult) return itemResult;
-                    }
+                    if (this.state.format !== null && item.format.indexOf(this.state.format.value) === -1) return false;
+                    if (this.state.genre !== null && item.genre_ids.indexOf(this.state.genre.value) === -1) return false;
+                    if (this.state.searchInput !== null && item.title.toLowerCase().indexOf(this.state.searchInput.toLowerCase()) === -1) return false;
                 }
 
                 return itemResult;
@@ -184,18 +154,9 @@ class Movies extends React.Component {
                 let itemResult = item.title.toLowerCase().indexOf(searchInput.toLowerCase()) !== -1;
 
                 if (itemResult) {
-                    if (this.state.format !== null) {
-                        itemResult = item.format.indexOf(this.state.format.value) !== -1;
-                        if (!itemResult) return itemResult;
-                    }
-                    if (this.state.genre !== null) {
-                        itemResult = item.genre_ids.indexOf(this.state.genre.value) !== -1;
-                        if (!itemResult) return itemResult;
-                    }
-                    if (this.state.year !== null) {
-                        itemResult = item.release_date.indexOf(this.state.year.value) !== -1;
-                        if (!itemResult) return itemResult;
-                    }
+                    if (this.state.format !== null && item.format.indexOf(this.state.format.value) === -1) return false;                    
+                    if (this.state.genre !== null && item.genre_ids.indexOf(this.state.genre.value) === -1) return false;
+                    if (this.state.year !== null && item.release_date.indexOf(this.state.year.value) === -1) return false;                    
                 }
 
                 return itemResult;
@@ -259,7 +220,7 @@ class Movies extends React.Component {
                 {/* Шапка приложения. */}
                 <Navbar inverse>
                     <Nav>
-                        <NavItem eventKey={1} href="#">
+                        <NavItem eventKey={1} href="#" active={this.state.pageSearch}>
                             Search
                         </NavItem>
                         <NavItem eventKey={2} href="#">
