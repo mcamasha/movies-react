@@ -9,8 +9,9 @@ import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
 import { MOVIES } from '../movies.js';
 import { GENRES } from '../genres.js';
 
-import '../css/search.css';
+import '../css/style.css';
 import { ENGINE_METHOD_DIGESTS } from "constants";
+import { runInThisContext } from "vm";
 
 export class Search extends React.Component {
 
@@ -25,8 +26,8 @@ export class Search extends React.Component {
             genre: null,                // Начальное состояние для фильтра 'Жанр'.
             year: null,                 // Начальное состояние для фильтра 'Год'.
             searchInput: null,          // Начальное состояние для фильтра 'Поиск по названию фильму'.
-            result: MOVIES,             // По умолчанию полжим сразу все фильмы. Их нужно будет показать в таблице.
-            pageSearch: true
+            result: null,
+            pageSearch: true            // хз
         }
 
         /**
@@ -129,10 +130,23 @@ export class Search extends React.Component {
 
     //нажатие клавиши Enter в input search
     handleSearchInputKeyPress(event) {
-        if(event.charCode == 13) {
-            this.handleSearchButtonClick();    
+        if (event.charCode == 13) {
+            this.handleSearchButtonClick();
         }
     }
+
+    checkStateNull() {
+        if(this.state.searchInput !== '' || this.state.format || this.state.genre || this.state.year) 
+            return false;
+        else 
+            return true;
+    }
+
+    // checkResultNull() {
+    //     if(this.state.result === null) {
+    //         console.log('По вашему запросу ничего не найдено.');
+    //     }
+    // }
 
     /**
      * Обработчик нажатия на кнопку 'Поиск'.
@@ -150,29 +164,35 @@ export class Search extends React.Component {
         // Также обратите внимание, что если searchInput пустое, то мы кладём в стейт весь справочник (например, если юзер очистил поле и нажал 'Поиск').
         // Для этого используется тренарный оператор. В React он используется очень часто.
 
-        const movies = MOVIES.filter(
-            (item) => {
-                let itemResult = item.title.toLowerCase().indexOf(searchInput.toLowerCase()) !== -1;
+        if(this.checkStateNull()) {
+            this.setState({
+                result: null
+            });
+        } else {
+            const movies = MOVIES.filter(
+                (item) => {
+                    let itemResult = item.title.toLowerCase().indexOf(searchInput.toLowerCase()) !== -1;
 
-                if (itemResult) {
-                    if (this.state.format !== null && item.format.indexOf(this.state.format.value) === -1) return false;                    
-                    if (this.state.genre !== null && item.genre_ids.indexOf(this.state.genre.value) === -1) return false;
-                    if (this.state.year !== null && item.release_date.indexOf(this.state.year.value) === -1) return false;                    
+                    if (itemResult) {
+                        if (this.state.format !== null && item.format.indexOf(this.state.format.value) === -1) return false;
+                        if (this.state.genre !== null && item.genre_ids.indexOf(this.state.genre.value) === -1) return false;
+                        if (this.state.year !== null && item.release_date.indexOf(this.state.year.value) === -1) return false;
+                    }
+
+                    return itemResult;
                 }
+            );
 
-                return itemResult;
-            }
-        );
-
-        this.setState({
-            result: movies
-        });
+            this.setState({
+                result: movies
+            });
+        }
     }
 
     render() {
         function posterFormatter(cell, row) {
             return (
-                <Image alt="img" src={'https://image.tmdb.org/t/p/w185_and_h278_bestv2/' + cell} id = 'poster' />
+                <Image alt="img" src={'https://image.tmdb.org/t/p/w185_and_h278_bestv2/' + cell} id='poster' />
             );
         }
 
@@ -294,15 +314,19 @@ export class Search extends React.Component {
                     </Row>
                     <Row>
                         <Col xs={12}>
-                            <BootstrapTable
-                                keyField='id'
-                                data={this.state.result}
-                                columns={columns}
-                                pagination={paginationFactory()}
-                                striped
-                                hover
-                                condensed
-                            />
+                            {this.state.result === null || this.state.result.length === 0 ? (
+                                this.state.result === null ? <h4>Введите критерии поиска</h4> : <h4>По вашему запросу ничего не найдено</h4>
+                            ) : (
+                                    <BootstrapTable
+                                        keyField='id'
+                                        data={this.state.result}
+                                        columns={columns}
+                                        pagination={paginationFactory()}
+                                        striped
+                                        hover
+                                        condensed
+                                    />
+                                )}
                         </Col>
                     </Row>
                 </Grid>
