@@ -13,6 +13,8 @@ import '../css/style.css';
 import { ENGINE_METHOD_DIGESTS } from "constants";
 import { runInThisContext } from "vm";
 
+const API_KEY = "37662c76ffc19e5cd1b95f37d77155fc";
+
 export class Search extends React.Component {
 
     constructor(props) {
