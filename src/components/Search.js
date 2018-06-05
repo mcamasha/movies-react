@@ -9,7 +9,7 @@ import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
 import { MOVIES } from '../movies.js';
 import { GENRES } from '../genres.js';
 
-import '../styles.css';
+import '../css/search.css';
 import { ENGINE_METHOD_DIGESTS } from "constants";
 
 export class Search extends React.Component {
