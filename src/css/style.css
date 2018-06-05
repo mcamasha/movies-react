@@ -33,6 +33,10 @@
     max-height: 200px;
 }
 
-h1, h2, h4 {
+h1, h2, h3, h4 {
     text-align: center;
+}
+
+.message {
+    margin-top: 15%;
 }

@@ -317,7 +317,7 @@ export class Search extends React.Component {
                     <Row>
                         <Col xs={12}>
                             {this.state.result === null || this.state.result.length === 0 ? (
-                                this.state.result === null ? <h4>Введите критерии поиска</h4> : <h4>По вашему запросу ничего не найдено</h4>
+                                this.state.result === null ? <h4 className='message'>Введите критерии поиска</h4> : <h4 className='message'>По вашему запросу ничего не найдено</h4>
                             ) : (
                                     <BootstrapTable
                                         keyField='id'

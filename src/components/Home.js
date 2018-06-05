@@ -8,8 +8,7 @@ import axios from 'axios';
 
 // import '../css/home.css';
 import '../css/style.css';
-import { MOVIES } from '../movies.js';
-import { GENRES } from '../genres.js';
+// import { GENRES } from '../genres.js';
 
 const API_KEY = "37662c76ffc19e5cd1b95f37d77155fc";
 
@@ -23,27 +22,34 @@ export class Home extends React.Component {
          */
         this.state = {
             result: null,             // По умолчанию полжим сразу все фильмы. Их нужно будет показать в таблице.
+            genres: null,
+            isLoading: true,
+            colomns: {}
         }
     }
 
     componentDidMount() {
         //генерируем случайное число - страница с фильмами, которая будет выведена
-        const page = Math.floor(Math.random() * 4);
+        const page = Math.floor(Math.random() * 3) + 1;
         console.log(page);
-        
-        axios.get(`https://api.themoviedb.org/3/movie/now_playing?api_key=${API_KEY}&language=ru-RU&page=${page}&region=RU`)
-        // В then передаём функцию, которую необходимо выполнить после того, как сервер вернёт ответ.      
-        .then((response) => {
+
+        axios.all([
+            axios.get(`https://api.themoviedb.org/3/genre/movie/list?api_key=${API_KEY}&language=ru-RU`),
+            axios.get(`https://api.themoviedb.org/3/movie/now_playing?api_key=${API_KEY}&language=ru-RU&page=${page}&region=RU`)
+          ])
+          .then(axios.spread((genreRes, moviesRes) => {
             this.setState({
-                result: response.data.results
+                genres: genreRes.data.genres,
+                result: moviesRes.data.results
             });
-        })
-        .catch((error) => {
-            console.log('Что-то пошло не так, а именно ' + error.message);
-        });
+            this.getColomns();
+          })
+        );
     }
 
-    render() {
+    getColomns() {
+        const { genres } = this.state;
+
         function posterFormatter(cell, row) {
             return (
                 <Image alt="img" src={'https://image.tmdb.org/t/p/w185_and_h278_bestv2/' + cell} id='poster' />
@@ -55,15 +61,15 @@ export class Home extends React.Component {
         }
 
         function genreFormatter(cell, row) {
-            var genres = '';
-            for (let i = 0; i < GENRES.length; i++) {
+            let genresOfMovie = '';
+            for (let i = 0; i < genres.length; i++) {
                 for (let j = 0; j < cell.length; j++) {
-                    if (GENRES[i].id == cell[j]) {
-                        genres += ' ' + GENRES[i].name;
+                    if (genres[i].id == cell[j]) {
+                        genresOfMovie += ' ' + genres[i].name;
                     }
                 }
             }
-            return genres;
+            return genresOfMovie;
         }
 
         function voteFormatter(cell, row) {
@@ -73,7 +79,7 @@ export class Home extends React.Component {
                 return cell;
         }
 
-        const columns = [{
+        const columnsOfTable = [{
             dataField: 'poster_path',
             text: '',
             formatter: posterFormatter
@@ -98,6 +104,13 @@ export class Home extends React.Component {
         }
         ];
 
+        this.setState({
+            colomns: columnsOfTable,
+            isLoading: false
+        })
+    }
+
+    render() {
         return (
             <div>
                 {/* Основное содержимое. */}
@@ -110,15 +123,19 @@ export class Home extends React.Component {
                     </Row>
                     <Row>
                         <Col xs={12}>
-                            <BootstrapTable
-                                keyField='id'
-                                data={this.state.result}
-                                columns={columns}
-                                pagination={paginationFactory()}
-                                striped
-                                hover
-                                condensed
-                            />
+                            {this.state.isLoading?
+                                <h3 className='message'>Идёт загрузка, пожалуйста, подождите...</h3>
+                                :
+                                <BootstrapTable
+                                    keyField='id'
+                                    data={this.state.result}
+                                    columns={this.state.colomns}
+                                    pagination={paginationFactory()}
+                                    striped
+                                    hover
+                                    condensed
+                                />
+                            }
                         </Col>
                     </Row>
                 </Grid>
