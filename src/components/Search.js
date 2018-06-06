@@ -8,8 +8,6 @@ import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
 import axios from 'axios';
 import { Redirect } from 'react-router-dom';
 
-import { GENRES } from '../genres.js';
-
 import '../css/style.css';
 import { ENGINE_METHOD_DIGESTS, EAFNOSUPPORT } from "constants";
 import { runInThisContext } from "vm";
@@ -32,6 +30,7 @@ export class Search extends React.Component {
             result: null,
             redirect: false,
             selectedMovieId: null,
+            genres: {}
         }
 
         /**
@@ -44,6 +43,19 @@ export class Search extends React.Component {
         this.handleSearchInputChange = this.handleSearchInputChange.bind(this);
         this.handleSearchButtonClick = this.handleSearchButtonClick.bind(this);
         this.handleSearchInputKeyPress = this.handleSearchInputKeyPress.bind(this);
+    }
+
+    componentDidMount() {
+        axios.get(`https://api.themoviedb.org/3/genre/movie/list?api_key=${API_KEY}&language=ru-RU`)
+            // В then передаём функцию, которую необходимо выполнить после того, как сервер вернёт ответ.    
+            .then((response) => {
+                this.setState({
+                    genres: response.data.genres
+                });
+            })
+            .catch((error) => {
+                console.log('Что-то пошло не так, а именно ' + error.message);
+            });
     }
 
     /**
@@ -75,27 +87,6 @@ export class Search extends React.Component {
      * Обработчик изменения значения в фильтре 'Жанр'.
      */
     handleGenreChange(selectedOption) {
-        // Фильтруем по жанрам. Не забываем при этом, что жанров может быть много, они лежат в массиве.
-        // Это не сильно усложняет условие фильтрации, ведь indexOf метод прекрасно работает как со строкой так и с массивом.
-        // const movies = MOVIES.filter(
-        //     (item) => {
-        //         let itemResult = item.genre_ids.indexOf(selectedOption.value) !== -1;
-
-        //         if (itemResult) {
-        //             if (this.state.format !== null && item.format.indexOf(this.state.format.value) === -1) return false;
-        //             if (this.state.year !== null && item.release_date.indexOf(this.state.year.value) === -1) return false;
-        //             if (this.state.searchInput !== null && item.title.toLowerCase().indexOf(this.state.searchInput.toLowerCase()) === -1) return false;
-        //         }
-
-        //         return itemResult;
-        //     }
-        // );
-
-        // this.setState({
-        //     genre: selectedOption,
-        //     result: movies
-        // });
-
         let url = `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&language=ru-RU&sort_by=popularity.desc&page=1&with_genres=${selectedOption.value}`;
 
         if (this.state.year !== null) url += `&primary_release_year=${this.state.year.value}`;
@@ -206,6 +197,8 @@ export class Search extends React.Component {
     }
 
     render() {
+        const { genres } = this.state;
+
         if (this.state.redirect) {
             return <Redirect push targer="_blank" to={{
                 pathname: "/movie",
@@ -224,15 +217,15 @@ export class Search extends React.Component {
         }
 
         function genreFormatter(cell, row) {
-            var genres = '';
-            for (let i = 0; i < GENRES.length; i++) {
+            var genresOfMovies = '';
+            for (let i = 0; i < genres.length; i++) {
                 for (let j = 0; j < cell.length; j++) {
-                    if (GENRES[i].id == cell[j]) {
-                        genres += ' ' + GENRES[i].name;
+                    if (genres[i].id == cell[j]) {
+                        genresOfMovies += ' ' + genres[i].name;
                     }
                 }
             }
-            return genres;
+            return genresOfMovies;
         }
 
         const columns = [{
