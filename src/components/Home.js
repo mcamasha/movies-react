@@ -4,7 +4,7 @@ import { Grid, Row, Image, Col } from 'react-bootstrap';
 import BootstrapTable from 'react-bootstrap-table-next';
 import paginationFactory from 'react-bootstrap-table2-paginator';
 import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
-import { Redirect, Router } from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
 import axios from 'axios';
 
 // import '../css/home.css';
@@ -109,10 +109,6 @@ export class Home extends React.Component {
 
         const rowEventsOnClick = {
             onClick: (e, row, rowIndex) => {
-                // window.open(`http://localhost:8080/`, "_blank");
-                // return (
-                // )
-                console.log(row);
                 this.setState({
                     redirect: true,
                     selectedMovieId: row.id

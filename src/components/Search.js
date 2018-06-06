@@ -6,12 +6,12 @@ import BootstrapTable from 'react-bootstrap-table-next';
 import paginationFactory from 'react-bootstrap-table2-paginator';
 import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
 import axios from 'axios';
+import { Redirect } from 'react-router-dom';
 
-import { MOVIES } from '../movies.js';
 import { GENRES } from '../genres.js';
 
 import '../css/style.css';
-import { ENGINE_METHOD_DIGESTS } from "constants";
+import { ENGINE_METHOD_DIGESTS, EAFNOSUPPORT } from "constants";
 import { runInThisContext } from "vm";
 
 const API_KEY = "37662c76ffc19e5cd1b95f37d77155fc";
@@ -25,19 +25,20 @@ export class Search extends React.Component {
          * Инициализиурем стейт компонента.
          */
         this.state = {
-            format: null,               // Начальное состояние для фильтра 'Формат'.
+            adult: null,               // Начальное состояние для фильтра 'Adult'. Ранее был format
             genre: null,                // Начальное состояние для фильтра 'Жанр'.
             year: null,                 // Начальное состояние для фильтра 'Год'.
             searchInput: null,          // Начальное состояние для фильтра 'Поиск по названию фильму'.
             result: null,
-            pageSearch: true            // хз
+            redirect: false,
+            selectedMovieId: null,
         }
 
         /**
          * Делаем привязку контекста для обработчиков событий.
          * "Зашиваем" в методы ссылку на текущий объект, чтобы в теле метода this ссылался на объект.
          */
-        this.handleFormatChange = this.handleFormatChange.bind(this);
+        this.handleAdultChange = this.handleAdultChange.bind(this);
         this.handleGenreChange = this.handleGenreChange.bind(this);
         this.handleYearChange = this.handleYearChange.bind(this);
         this.handleSearchInputChange = this.handleSearchInputChange.bind(this);
@@ -48,26 +49,26 @@ export class Search extends React.Component {
     /**
      * Обработчик изменения значения в фильтре 'Формат'.
      */
-    handleFormatChange(selectedOption) {
-        // Фильтруем по формату.
-        const movies = MOVIES.filter(
-            (item) => {
-                let itemResult = item.format.indexOf(selectedOption.value) !== -1;
+    handleAdultChange(selectedOption) {
+        // Фильтруем по критерию "Вкл. фильмы для взрослых".
 
-                if (itemResult) {
-                    if (this.state.genre !== null && item.genre_ids.indexOf(this.state.genre.value) === -1) return false;
-                    if (this.state.year !== null && item.release_date.indexOf(this.state.year.value) === -1) return false;
-                    if (this.state.searchInput !== null && item.title.toLowerCase().indexOf(this.state.searchInput.toLowerCase()) === -1) return false;
-                }
+        let url = `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&language=ru-RU&sort_by=popularity.desc&include_adult=${selectedOption.value}`;
 
-                return itemResult;
-            }
-        );
+        if (this.state.genre !== null) url += `&with_genres=${this.state.genre.value}`;
+        if (this.state.searchInput !== null) url = `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&language=ru-RU&query=${this.state.searchInput}&include_adult=${selectedOption.value}`;
+        if (this.state.year !== null) url += `&primary_release_year=${this.state.year.value}`;
 
-        this.setState({
-            format: selectedOption,
-            result: movies
-        });
+        axios.get(url)
+            // В then передаём функцию, которую необходимо выполнить после того, как сервер вернёт ответ.    
+            .then((response) => {
+                this.setState({
+                    adult: selectedOption,
+                    result: response.data.results
+                });
+            })
+            .catch((error) => {
+                console.log('Что-то пошло не так, а именно ' + error.message);
+            });
     }
 
     /**
@@ -94,6 +95,24 @@ export class Search extends React.Component {
         //     genre: selectedOption,
         //     result: movies
         // });
+
+        let url = `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&language=ru-RU&sort_by=popularity.desc&page=1&with_genres=${selectedOption.value}`;
+
+        if (this.state.year !== null) url += `&primary_release_year=${this.state.year.value}`;
+        if (this.state.adult !== null) url += `&include_adult=${this.state.adult.value}`;
+
+        console.log(url);
+        axios.get(url)
+            // В then передаём функцию, которую необходимо выполнить после того, как сервер вернёт ответ.    
+            .then((response) => {
+                this.setState({
+                    genre: selectedOption,
+                    result: response.data.results
+                });
+            })
+            .catch((error) => {
+                console.log('Что-то пошло не так, а именно ' + error.message);
+            });
     }
 
     /**
@@ -102,29 +121,12 @@ export class Search extends React.Component {
     handleYearChange(selectedOption) {
 
         // Фильтруем по году.
-        // const movies = MOVIES.filter(
-        //     (item) => {
-        //         let itemResult = item.release_date.indexOf(selectedOption.value) !== -1
 
-        //         if (itemResult) {
-        //             if (this.state.format !== null && item.format.indexOf(this.state.format.value) === -1) return false;
-        //             if (this.state.genre !== null && item.genre_ids.indexOf(this.state.genre.value) === -1) return false;
-        //             if (this.state.searchInput !== null && item.title.toLowerCase().indexOf(this.state.searchInput.toLowerCase()) === -1) return false;
-        //         }
-
-        //         return itemResult;
-        //     }
-        // );
-
-        // this.setState({
-        //     year: selectedOption,
-        //     result: movies
-        // });
-
-        let url = `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&language=ru-RU&include_adult=false&page=1&primary_release_year=${selectedOption.value}`;
+        let url = `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&language=ru-RU&sort_by=popularity.desc&page=1&primary_release_year=${selectedOption.value}`;
 
         if (this.state.genre !== null) url += `&with_genres=${this.state.genre.value}`;
-        if (this.state.searchInput !== null) url += `&query=${this.state.searchInput.value}`;
+        if (this.state.searchInput !== null) url = `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&language=ru-RU&query=${this.state.searchInput}&primary_release_year=${selectedOption.value}`;
+        if (this.state.adult !== null) url += `&include_adult=${this.state.adult.value}`;
 
         console.log(url);
         axios.get(url)
@@ -157,7 +159,7 @@ export class Search extends React.Component {
     }
 
     checkStateNull() {
-        if (this.state.searchInput !== '' || this.state.format || this.state.genre || this.state.year)
+        if (this.state.searchInput !== '' || this.state.adult || this.state.genre || this.state.year)
             return false;
         else
             return true;
@@ -184,10 +186,11 @@ export class Search extends React.Component {
                 result: null
             });
         } else {
-            let url = `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&language=ru-RU&query=${searchInput}&page=1&include_adult=false`;
+            let url = `https://api.themoviedb.org/3/search/movie?api_key=37662c76ffc19e5cd1b95f37d77155fc&language=ru-RU&query=${searchInput}`;
 
-            if (this.state.genre !== null) url += `&genre=${this.state.genre.value}`;
-            if (this.state.year !== null) url += `&year=${this.state.year.value}`;
+            // if (this.state.genre !== null) url += `&genre=${this.state.genre.value}`;
+            if (this.state.year !== null) url += `&primary_release_year=${this.state.year.value}`;
+            if (this.state.adult !== null) url += `&include_adult=${this.state.adult.value}`;
 
             axios.get(url)
                 // В then передаём функцию, которую необходимо выполнить после того, как сервер вернёт ответ.    
@@ -203,6 +206,13 @@ export class Search extends React.Component {
     }
 
     render() {
+        if (this.state.redirect) {
+            return <Redirect push targer="_blank" to={{
+                pathname: "/movie",
+                state: { id: this.state.selectedMovieId }
+            }} />
+        }
+
         function posterFormatter(cell, row) {
             return (
                 <Image alt="img" src={'https://image.tmdb.org/t/p/w185_and_h278_bestv2/' + cell} id='poster' />
@@ -249,6 +259,15 @@ export class Search extends React.Component {
         }
         ];
 
+        const rowEventsOnClick = {
+            onClick: (e, row, rowIndex) => {
+                this.setState({
+                    redirect: true,
+                    selectedMovieId: row.id
+                });
+            }
+        }
+
         return (
             <div>
                 {/* Основное содержимое. */}
@@ -256,13 +275,16 @@ export class Search extends React.Component {
                     <Row className="show-grid">
                         <Col xs={3}>
                             <Select
-                                name="format"
-                                value={this.state.format}
-                                onChange={this.handleFormatChange}
+                                name="adult" //был format
+                                value={this.state.adult}
+                                onChange={this.handleAdultChange}
                                 clearable={false}
+                                placeholder="Include adult?"
                                 options={[
-                                    { value: 'movie', label: 'Фильм' },
-                                    { value: 'tvseries', label: 'Сериал' },
+                                    // { value: 'movie', label: 'Фильм' },
+                                    // { value: 'tvseries', label: 'Сериал' },
+                                    { value: 'true', label: 'Yes' },
+                                    { value: 'false', label: 'No' },
                                 ]}
                             />
                         </Col>
@@ -272,6 +294,7 @@ export class Search extends React.Component {
                                 value={this.state.genre}
                                 onChange={this.handleGenreChange}
                                 clearable={false}
+                                placeholder="Genre (не работает с input)"
                                 options={[
                                     { value: 12, label: 'Приключения' },
                                     { value: 16, label: 'Мультфильм' },
@@ -301,6 +324,7 @@ export class Search extends React.Component {
                                 value={this.state.year}
                                 onChange={this.handleYearChange}
                                 clearable={false}
+                                placeholder="Year"
                                 options={[
                                     { value: '2010', label: '2010' },
                                     { value: '2011', label: '2011' },
@@ -338,6 +362,7 @@ export class Search extends React.Component {
                                         striped
                                         hover
                                         condensed
+                                        rowEvents={rowEventsOnClick}
                                     />
                                 )}
                         </Col>

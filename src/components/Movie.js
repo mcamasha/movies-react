@@ -94,7 +94,7 @@ export class Movie extends React.Component {
                                         </tr>
                                         <tr>
                                             <td>Genres</td>
-                                            <td>{genres}</td>
+                                            <td>{genres !== '' ? genres : 'Данных нет'}</td>
                                         </tr>
                                         <tr>
                                             <td>Status</td>
@@ -122,7 +122,7 @@ export class Movie extends React.Component {
                                         </tr>
                                         <tr>
                                             <td>Companies</td>
-                                            <td>{companies}</td>
+                                            <td>{companies !== '' ? companies : 'Данных нет'}</td>
                                         </tr>
                                         <tr>
                                             <td>Original language</td>
