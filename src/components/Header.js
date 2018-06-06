@@ -17,9 +17,6 @@ export const Header = (props) => {
                         Search
                     </Link>
                 </NavItem>
-                <NavItem eventKey={3} href="#">
-                    My Movies
-                </NavItem>
             </Nav>
             <Nav pullRight>
                 <NavItem eventKey={1} href="#">

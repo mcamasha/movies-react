@@ -5,6 +5,7 @@ import Select from 'react-select';
 import BootstrapTable from 'react-bootstrap-table-next';
 import paginationFactory from 'react-bootstrap-table2-paginator';
 import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
+import axios from 'axios';
 
 import { MOVIES } from '../movies.js';
 import { GENRES } from '../genres.js';
@@ -75,24 +76,24 @@ export class Search extends React.Component {
     handleGenreChange(selectedOption) {
         // Фильтруем по жанрам. Не забываем при этом, что жанров может быть много, они лежат в массиве.
         // Это не сильно усложняет условие фильтрации, ведь indexOf метод прекрасно работает как со строкой так и с массивом.
-        const movies = MOVIES.filter(
-            (item) => {
-                let itemResult = item.genre_ids.indexOf(selectedOption.value) !== -1;
+        // const movies = MOVIES.filter(
+        //     (item) => {
+        //         let itemResult = item.genre_ids.indexOf(selectedOption.value) !== -1;
 
-                if (itemResult) {
-                    if (this.state.format !== null && item.format.indexOf(this.state.format.value) === -1) return false;
-                    if (this.state.year !== null && item.release_date.indexOf(this.state.year.value) === -1) return false;
-                    if (this.state.searchInput !== null && item.title.toLowerCase().indexOf(this.state.searchInput.toLowerCase()) === -1) return false;
-                }
+        //         if (itemResult) {
+        //             if (this.state.format !== null && item.format.indexOf(this.state.format.value) === -1) return false;
+        //             if (this.state.year !== null && item.release_date.indexOf(this.state.year.value) === -1) return false;
+        //             if (this.state.searchInput !== null && item.title.toLowerCase().indexOf(this.state.searchInput.toLowerCase()) === -1) return false;
+        //         }
 
-                return itemResult;
-            }
-        );
+        //         return itemResult;
+        //     }
+        // );
 
-        this.setState({
-            genre: selectedOption,
-            result: movies
-        });
+        // this.setState({
+        //     genre: selectedOption,
+        //     result: movies
+        // });
     }
 
     /**
@@ -101,24 +102,42 @@ export class Search extends React.Component {
     handleYearChange(selectedOption) {
 
         // Фильтруем по году.
-        const movies = MOVIES.filter(
-            (item) => {
-                let itemResult = item.release_date.indexOf(selectedOption.value) !== -1
+        // const movies = MOVIES.filter(
+        //     (item) => {
+        //         let itemResult = item.release_date.indexOf(selectedOption.value) !== -1
 
-                if (itemResult) {
-                    if (this.state.format !== null && item.format.indexOf(this.state.format.value) === -1) return false;
-                    if (this.state.genre !== null && item.genre_ids.indexOf(this.state.genre.value) === -1) return false;
-                    if (this.state.searchInput !== null && item.title.toLowerCase().indexOf(this.state.searchInput.toLowerCase()) === -1) return false;
-                }
+        //         if (itemResult) {
+        //             if (this.state.format !== null && item.format.indexOf(this.state.format.value) === -1) return false;
+        //             if (this.state.genre !== null && item.genre_ids.indexOf(this.state.genre.value) === -1) return false;
+        //             if (this.state.searchInput !== null && item.title.toLowerCase().indexOf(this.state.searchInput.toLowerCase()) === -1) return false;
+        //         }
 
-                return itemResult;
-            }
-        );
+        //         return itemResult;
+        //     }
+        // );
 
-        this.setState({
-            year: selectedOption,
-            result: movies
-        });
+        // this.setState({
+        //     year: selectedOption,
+        //     result: movies
+        // });
+
+        let url = `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&language=ru-RU&include_adult=false&page=1&primary_release_year=${selectedOption.value}`;
+
+        if (this.state.genre !== null) url += `&with_genres=${this.state.genre.value}`;
+        if (this.state.searchInput !== null) url += `&query=${this.state.searchInput.value}`;
+
+        console.log(url);
+        axios.get(url)
+            // В then передаём функцию, которую необходимо выполнить после того, как сервер вернёт ответ.    
+            .then((response) => {
+                this.setState({
+                    year: selectedOption,
+                    result: response.data.results
+                });
+            })
+            .catch((error) => {
+                console.log('Что-то пошло не так, а именно ' + error.message);
+            });
     }
 
     /**
@@ -138,17 +157,11 @@ export class Search extends React.Component {
     }
 
     checkStateNull() {
-        if(this.state.searchInput !== '' || this.state.format || this.state.genre || this.state.year) 
+        if (this.state.searchInput !== '' || this.state.format || this.state.genre || this.state.year)
             return false;
-        else 
+        else
             return true;
     }
-
-    // checkResultNull() {
-    //     if(this.state.result === null) {
-    //         console.log('По вашему запросу ничего не найдено.');
-    //     }
-    // }
 
     /**
      * Обработчик нажатия на кнопку 'Поиск'.
@@ -166,28 +179,26 @@ export class Search extends React.Component {
         // Также обратите внимание, что если searchInput пустое, то мы кладём в стейт весь справочник (например, если юзер очистил поле и нажал 'Поиск').
         // Для этого используется тренарный оператор. В React он используется очень часто.
 
-        if(this.checkStateNull()) {
+        if (this.checkStateNull()) {
             this.setState({
                 result: null
             });
         } else {
-            const movies = MOVIES.filter(
-                (item) => {
-                    let itemResult = item.title.toLowerCase().indexOf(searchInput.toLowerCase()) !== -1;
+            let url = `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&language=ru-RU&query=${searchInput}&page=1&include_adult=false`;
 
-                    if (itemResult) {
-                        if (this.state.format !== null && item.format.indexOf(this.state.format.value) === -1) return false;
-                        if (this.state.genre !== null && item.genre_ids.indexOf(this.state.genre.value) === -1) return false;
-                        if (this.state.year !== null && item.release_date.indexOf(this.state.year.value) === -1) return false;
-                    }
+            if (this.state.genre !== null) url += `&genre=${this.state.genre.value}`;
+            if (this.state.year !== null) url += `&year=${this.state.year.value}`;
 
-                    return itemResult;
-                }
-            );
-
-            this.setState({
-                result: movies
-            });
+            axios.get(url)
+                // В then передаём функцию, которую необходимо выполнить после того, как сервер вернёт ответ.    
+                .then((response) => {
+                    this.setState({
+                        result: response.data.results
+                    });
+                })
+                .catch((error) => {
+                    console.log('Что-то пошло не так, а именно ' + error.message);
+                });
         }
     }
 
